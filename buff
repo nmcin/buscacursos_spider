@@ -1,0 +1,20 @@
+CREATE TABLE Cursos (
+    ano integer,
+    semestre integer,
+    nrc varchar(5),
+    sigla varchar(8),
+    seccion integer,
+    nombre varchar(255),
+    profesor varchar(255),
+    retirable bool,
+    en_ingles bool,
+    aprob_especial bool,
+    area varchar(255),
+    formato varchar(32),
+    categoria varchar(255),
+    campus varchar(64),
+    creditos integer,
+    cupos_total integer,
+    cupos_disp integer,
+    horario varchar(255)
+);
