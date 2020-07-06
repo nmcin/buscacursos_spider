@@ -1,0 +1,98 @@
+/* TABLES */
+// Table Cursos
+CREATE TABLE `cursos` (
+    `ano` int(11) DEFAULT NULL,
+    `semestre` int(11) DEFAULT NULL,
+    `nrc` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `sigla` varchar(8) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `seccion` int(11) DEFAULT NULL,
+    `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `profesor` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `retirable` tinyint(1) DEFAULT NULL,
+    `en_ingles` tinyint(1) DEFAULT NULL,
+    `aprob_especial` tinyint(1) DEFAULT NULL,
+    `area` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `formato` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `categoria` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `campus` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `creditos` int(11) DEFAULT NULL,
+    `cupos_total` int(11) DEFAULT NULL,
+    `cupos_disp` int(11) DEFAULT NULL,
+    `horario` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `duplicates` (`nrc`,`ano`,`semestre`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+// Table Horarios
+CREATE TABLE `horarios` (
+    `id` int(11) NOT NULL,
+    `L1` varchar(4) DEFAULT 'FREE',
+    `L2` varchar(4) DEFAULT 'FREE',
+    `L3` varchar(4) DEFAULT 'FREE',
+    `L4` varchar(4) DEFAULT 'FREE',
+    `L5` varchar(4) DEFAULT 'FREE',
+    `L6` varchar(4) DEFAULT 'FREE',
+    `L7` varchar(4) DEFAULT 'FREE',
+    `L8` varchar(4) DEFAULT 'FREE',
+    `M1` varchar(4) DEFAULT 'FREE',
+    `M2` varchar(4) DEFAULT 'FREE',
+    `M3` varchar(4) DEFAULT 'FREE',
+    `M4` varchar(4) DEFAULT 'FREE',
+    `M5` varchar(4) DEFAULT 'FREE',
+    `M6` varchar(4) DEFAULT 'FREE',
+    `M7` varchar(4) DEFAULT 'FREE',
+    `M8` varchar(4) DEFAULT 'FREE',
+    `W1` varchar(4) DEFAULT 'FREE',
+    `W2` varchar(4) DEFAULT 'FREE',
+    `W3` varchar(4) DEFAULT 'FREE',
+    `W4` varchar(4) DEFAULT 'FREE',
+    `W5` varchar(4) DEFAULT 'FREE',
+    `W6` varchar(4) DEFAULT 'FREE',
+    `W7` varchar(4) DEFAULT 'FREE',
+    `W8` varchar(4) DEFAULT 'FREE',
+    `J1` varchar(4) DEFAULT 'FREE',
+    `J2` varchar(4) DEFAULT 'FREE',
+    `J3` varchar(4) DEFAULT 'FREE',
+    `J4` varchar(4) DEFAULT 'FREE',
+    `J5` varchar(4) DEFAULT 'FREE',
+    `J6` varchar(4) DEFAULT 'FREE',
+    `J7` varchar(4) DEFAULT 'FREE',
+    `J8` varchar(4) DEFAULT 'FREE',
+    `V1` varchar(4) DEFAULT 'FREE',
+    `V2` varchar(4) DEFAULT 'FREE',
+    `V3` varchar(4) DEFAULT 'FREE',
+    `V4` varchar(4) DEFAULT 'FREE',
+    `V5` varchar(4) DEFAULT 'FREE',
+    `V6` varchar(4) DEFAULT 'FREE',
+    `V7` varchar(4) DEFAULT 'FREE',
+    `V8` varchar(4) DEFAULT 'FREE',
+    `S1` varchar(4) DEFAULT 'FREE',
+    `S2` varchar(4) DEFAULT 'FREE',
+    `S3` varchar(4) DEFAULT 'FREE',
+    `S4` varchar(4) DEFAULT 'FREE',
+    `S5` varchar(4) DEFAULT 'FREE',
+    `S6` varchar(4) DEFAULT 'FREE',
+    `S7` varchar(4) DEFAULT 'FREE',
+    `S8` varchar(4) DEFAULT 'FREE',
+    PRIMARY KEY (`id`)
+);
+
+/* ENDPOINTS */
+// Datos principales (ano, semestre, sigla) -> Table `cursos`
+http://buscacursos.uc.cl/?cxml_semestre={ANO}-{SEMESTRE}&cxml_sigla={comb}
+
+// Detalle cupos (semestre, ano, nrc)
+http://buscacursos.uc.cl/informacionVacReserva.ajax.php?nrc=23128&termcode=2020-1
+
+// Programa (sigla)
+http://catalogo.uc.cl/index.php?tmpl=component&view=programa&sigla=psi5005
+
+// Foto prof (nombre, semestre, ano, sigla, seccion)
+http://buscacursos.uc.cl/getFotoProfe.db.php?nombre=Cox+Juan&semestre=2020-1&sigla=PSI5005&seccion=1
+
+// Requisitos (sigla)
+http://catalogo.uc.cl/index.php?tmpl=component&view=requisitos&sigla=PSI5005
+
+// Info corta curso con foto profesor (semestre, ano, sigla, seccion)
+http://buscacursos.uc.cl/informacionCurso.ajax.php?semestre=2020-1&sigla=PSI5005&seccion=1
