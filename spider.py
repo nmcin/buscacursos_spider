@@ -62,9 +62,9 @@ class BCParser(HTMLParser):
     def process_course(self):
         data = self.text.strip().split('\n')
         for index in range(len(data)):
-            data[index] = data[index][4:-5] # strip <td> </td>
-            data[index] = data[index].replace('<br>', '')
-            data[index] = data[index].replace('</br>', '')
+            # data[index] = data[index][4:-5] # strip <td> </td>
+            data[index] = data[index].replace('<td>', '').replace('</td>', '')
+            data[index] = data[index].replace('<br>', '').replace('</br>', '')
         course = {
             'nrc': data[0],
             'sigla': data[1][data[1].index('</img>') + 6 : data[1].index('</div>')],
@@ -81,8 +81,11 @@ class BCParser(HTMLParser):
             'creditos': int(data[12]),
             'cupos_total': int(data[13]),
             'cupos_disp': int(data[14]),
-            'horario': '<!>'.join(data[16:])
+            'horario': '<>'.join(data[16:]).replace('<tr>', '\nROW: ')
         }
+        course['horario'] = course['horario'].replace('<a>', '').replace('</a>', '')
+        course['horario'] = course['horario'].replace('<table>', '').replace('</table>', '')
+        course['horario'] = course['horario'].replace('<img>', '').replace('</img>', '')
         print(json.dumps(course, indent=4))
         try:
             db_cursor.execute(INSERT, (
