@@ -2,6 +2,7 @@ import requests
 from html.parser import HTMLParser
 import json
 import mysql.connector
+import sys
 
 cursos_db = mysql.connector.connect(
   host="localhost",
@@ -10,15 +11,21 @@ cursos_db = mysql.connector.connect(
   database="cursos"
 )
 
-ANO = '2019'
-SEMESTRE = '2'
+if len(sys.argv) < 2:
+    print('Debe entragar los argumentos AÑO y SEMESTRE')
+    print('ej: python spider.py 2020 1')
+    exit()
+ANO = sys.argv[1]
+SEMESTRE = sys.argv[2]
+print('Running spider on', ANO, SEMESTRE)
+
 db_cursor = cursos_db.cursor()
 INSERT = f'INSERT INTO cursos (ano, semestre, nrc, sigla, seccion,' +\
                              f'nombre, profesor, retirable, en_ingles,' +\
                              f'aprob_especial, area, formato, categoria,' +\
                              f'campus, creditos, cupos_total, cupos_disp,' +\
-                             f'horario) VALUES ({ANO}, {SEMESTRE},' +\
-                             f'%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                             f'horario, escuela) VALUES ({ANO}, {SEMESTRE},' +\
+                             f'%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
 
 
 class BCParser(HTMLParser):
@@ -28,6 +35,7 @@ class BCParser(HTMLParser):
         self.toogle = False
         self.nested = 0
         self.text = ''
+        self.current_escuela = ''
 
     def handle_starttag(self, tag, attrs):
         if tag == 'tr' and (\
@@ -40,6 +48,9 @@ class BCParser(HTMLParser):
             self.text += f'<{tag}>'
         elif self.toogle:
             self.text += f'<{tag}>'
+        
+        if tag == 'td' and ('colspan', '18') in attrs:
+            self.current_escuela = '*'
 
     def handle_endtag(self, tag):
         if tag == 'tr' and self.toogle:
@@ -58,6 +69,9 @@ class BCParser(HTMLParser):
         if self.toogle:
             data = data.strip()
             self.text += data
+        
+        if self.current_escuela == '*':
+            self.current_escuela = data
 
     def process_course(self):
         data = self.text.strip().split('\n')
@@ -68,10 +82,10 @@ class BCParser(HTMLParser):
         course = {
             'nrc': data[0],
             'sigla': data[1][data[1].index('</img>') + 6 : data[1].index('</div>')],
-            'retirable': True if data[2] == 'SI' else False,
-            'en_ingles': True if data[3] == 'SI' else False,
+            'retirable': False if data[2] == 'NO' else True,
+            'en_ingles': False if data[3] == 'NO' else True,
             'seccion': int(data[4]),
-            'aprob_especial': True if data[5] == 'SI' else False,
+            'aprob_especial': False if data[5] == 'NO' else True,
             'area': data[6],
             'formato': data[7],
             'categoria': data[8],
@@ -81,12 +95,16 @@ class BCParser(HTMLParser):
             'creditos': int(data[12]),
             'cupos_total': int(data[13]),
             'cupos_disp': int(data[14]),
-            'horario': '<>'.join(data[16:]).replace('<tr>', '\nROW: ')
+            'horario': '<>'.join(data[16:]).replace('<tr>', '\nROW: '),
+            'escuela': self.current_escuela
         }
+        # Quick horario processing
         course['horario'] = course['horario'].replace('<a>', '').replace('</a>', '')
         course['horario'] = course['horario'].replace('<table>', '').replace('</table>', '')
         course['horario'] = course['horario'].replace('<img>', '').replace('</img>', '')
-        print(json.dumps(course, indent=4))
+        # Turn profesor Apellido Nombre to Nombre Apellido
+        course['profesor'] = ','.join([prof.split(' ')[-1] + ' ' + ' '.join(prof.split(' ')[:-1]) for prof in course['profesor'].split(',')])
+
         try:
             db_cursor.execute(INSERT, (
                 course['nrc'],
@@ -104,12 +122,16 @@ class BCParser(HTMLParser):
                 course['creditos'],
                 course['cupos_total'],
                 course['cupos_disp'],
-                course['horario']
+                course['horario'],
+                course['escuela']
             ))
             cursos_db.commit()
             print(db_cursor.rowcount, "record inserted. Course", self.counter)
         except Exception as err:
             print(err)
+            with open('error.log', 'a+') as log:
+                log.write('Error: ' + str(err) + '\n')
+                log.write('Context: ' + json.dumps(course, indent=4) + '\n')
 
 
 parser = BCParser()
