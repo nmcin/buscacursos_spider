@@ -1,8 +1,15 @@
 import mysql.connector
+import sys
 
 
-ANO = '2020'
-SEMESTRE = '1'
+if len(sys.argv) < 2:
+    print('Debe entragar los argumentos AÑO y SEMESTRE')
+    print('ej: python proc_horarios.py 2020 1')
+    exit()
+ANO = sys.argv[1]
+SEMESTRE = sys.argv[2]
+print('Processing horarios on', ANO, SEMESTRE)
+
 BATCH_SIZE = 100
 
 
