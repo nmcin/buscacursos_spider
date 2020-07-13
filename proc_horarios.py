@@ -37,6 +37,9 @@ def process_course(id, data):
         print(db_cursor.rowcount, "horario procesed.", id)
     except Exception as err:
         print(err)
+        with open('error.log', 'a+') as log:
+            log.write('Error: ' + str(err) + '\n')
+            log.write('Context: ' + str(id) + '\n')
 
 
 cursos_db = mysql.connector.connect(
