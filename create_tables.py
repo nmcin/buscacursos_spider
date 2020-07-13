@@ -1,3 +1,14 @@
+import mysql.connector
+
+
+cursos_db = mysql.connector.connect(
+  host="localhost",
+  user="admin",
+  password="admin",
+  database="cursos"
+)
+db_cursor = cursos_db.cursor()
+
 CURSOS = """CREATE TABLE `cursos` (
     `ano` int(11) DEFAULT NULL,
     `semestre` int(11) DEFAULT NULL,
@@ -33,3 +44,23 @@ for day in 'LMWJVS':
 
 HORARIOS += """PRIMARY KEY (`id`));"""
 print(HORARIOS)
+
+HORARIOS_INFO = """CREATE TABLE `horarios_info` (
+    `id` int(11) NOT NULL,
+    `total` int(11) DEFAULT 0,
+    """
+mod_types = set()
+for day in 'LMWJVS':
+    for mod in range(1, 9):
+        db_cursor.execute(f'SELECT distinct {day + str(mod)} FROM horarios;')
+        res = db_cursor.fetchall()
+        for mod_type in res:
+            mod_types.add(mod_type[0])
+mod_types.remove('FREE')
+mod_types = list(mod_types)
+mod_types.sort()
+for mod_type in mod_types:
+    HORARIOS_INFO += f'`{mod_type}` ' + """int(11) DEFAULT 0,
+    """
+HORARIOS_INFO += """PRIMARY KEY (`id`));"""
+print(HORARIOS_INFO)
