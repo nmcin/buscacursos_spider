@@ -25,7 +25,7 @@ def process_course(id, data):
         modules = horario[1].split(',')
         for day in days:
             for mod in modules:
-                if day and mod:
+                if day and mod and (day + mod) not in cols:
                     cols.append(day + mod)
                     values.append("'" + row[1] + "'")
     cols = ','.join(cols)
