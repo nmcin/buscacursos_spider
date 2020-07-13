@@ -58,7 +58,7 @@ parser = ProgramParser()
 while offset < total:
     # Process by batches
     print('Processing from', offset, 'to', offset + BATCH_SIZE)
-    db_cursor.execute(f'SELECT distinct sigla FROM cursos LIMIT {BATCH_SIZE} OFFSET {offset};')
+    db_cursor.execute(f'SELECT distinct sigla FROM cursos ORDER BY sigla LIMIT {BATCH_SIZE} OFFSET {offset};')
     siglas = db_cursor.fetchall()
     for sigla in siglas:
         sigla = sigla[0]

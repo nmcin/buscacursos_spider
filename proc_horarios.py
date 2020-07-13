@@ -58,7 +58,7 @@ offset = 0
 while offset < total:
     # Process by batches
     print('Processing from', offset, 'to', offset + BATCH_SIZE)
-    db_cursor.execute(f'SELECT id, horario FROM cursos WHERE ano = {ANO} AND semestre = {SEMESTRE} LIMIT {BATCH_SIZE} OFFSET {offset};')
+    db_cursor.execute(f'SELECT id, horario FROM cursos WHERE ano = {ANO} AND semestre = {SEMESTRE} ORDER BY id LIMIT {BATCH_SIZE} OFFSET {offset};')
     ramos = db_cursor.fetchall()
     for ramo in ramos:
         process_course(ramo[0], ramo[1])
