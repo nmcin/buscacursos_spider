@@ -17,6 +17,11 @@ if len(sys.argv) < 2:
     exit()
 ANO = sys.argv[1]
 SEMESTRE = sys.argv[2]
+
+if '-f' in sys.argv:
+    FROM = sys.argv[sys.argv.index('-f') + 1]
+else:
+    FROM = 'AAA'
 print('Running spider on', ANO, SEMESTRE)
 
 db_cursor = cursos_db.cursor()
@@ -135,14 +140,20 @@ class BCParser(HTMLParser):
 
 
 parser = BCParser()
+skip = True
 # Search in every possible 3 letter combination
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 for l1 in LETTERS:
     for l2 in LETTERS:
         for l3 in LETTERS:
             comb = l1 + l2 + l3
-            print('Search', comb)
+            if skip:
+                skip = comb != FROM
+            if skip:
+                continue
+            print('Searching', comb)
             query = f'http://buscacursos.uc.cl/?cxml_semestre={ANO}-{SEMESTRE}&cxml_sigla={comb}'
             resp = requests.get(query)
             parser.feed(resp.text)
+
 print(parser.counter, 'courses found.')
