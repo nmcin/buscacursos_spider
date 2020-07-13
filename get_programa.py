@@ -1,6 +1,7 @@
 import mysql.connector
 import requests
 from html.parser import HTMLParser
+import sys
 
 
 class ProgramParser(HTMLParser):
@@ -33,9 +34,10 @@ class ProgramParser(HTMLParser):
             self.text += data
 
 
+# Configurartions
 BATCH_SIZE = 100
-INSERT = f'INSERT INTO cursos_info (sigla, raw) VALUES (%s, %s)'
-parser = ProgramParser()
+INSERT = 'INSERT INTO cursos_info (sigla, raw) VALUES (%s, %s)'
+UPDATE = 'UPDATE cursos_info SET raw = %s WHERE sigla = %s'
 
 cursos_db = mysql.connector.connect(
   host="localhost",
@@ -45,11 +47,14 @@ cursos_db = mysql.connector.connect(
 )
 db_cursor = cursos_db.cursor()
 
+updating = ('-u' in sys.argv) or ('--update' in sys.argv)
+
 db_cursor.execute('SELECT count(distinct sigla) FROM cursos;')
 total = int(db_cursor.fetchone()[0])
 print(total, 'courses found.')
 
 offset = 0
+parser = ProgramParser()
 while offset < total:
     # Process by batches
     print('Processing from', offset, 'to', offset + BATCH_SIZE)
@@ -59,15 +64,35 @@ while offset < total:
         sigla = sigla[0]
         print('Processing', sigla)
         query = f'http://catalogo.uc.cl/index.php?tmpl=component&view=programa&sigla={sigla}'
-        text = requests.get(query).text
-        raw = parser.process(text)
-        try:
-            db_cursor.execute(INSERT, (sigla, raw))
-            cursos_db.commit()
-            print(db_cursor.rowcount, "sigla scrapped:", sigla)
-        except Exception as err:
-            print(err)
-            with open('error.log', 'a+') as log:
-                log.write('Error: ' + str(err) + '\n')
-                log.write('Context: ' + sigla + '\n')
+        db_cursor.execute('SELECT count(sigla) FROM cursos_info WHERE sigla = %s;', (sigla,))
+        exists = bool(db_cursor.fetchone()[0])
+        if not exists:
+            print('Inserting', sigla)
+            text = requests.get(query).text
+            raw = parser.process(text)
+            try:
+                db_cursor.execute(INSERT, (sigla, raw))
+                cursos_db.commit()
+                print(db_cursor.rowcount, "sigla scrapped:", sigla)
+            except Exception as err:
+                print(err)
+                with open('error.log', 'a+') as log:
+                    log.write('Error: ' + str(err) + '\n')
+                    log.write('Context: ' + str(sigla) + '\n')
+        elif updating:
+            print('Updating', sigla)
+            text = requests.get(query).text
+            raw = parser.process(text)
+            try:
+                db_cursor.execute(UPDATE, (raw, sigla))
+                cursos_db.commit()
+                print(db_cursor.rowcount, "sigla scrapped:", sigla)
+            except Exception as err:
+                print(err)
+                with open('error.log', 'a+') as log:
+                    log.write('Error: ' + str(err) + '\n')
+                    log.write('Context: ' + str(sigla) + '\n')
+        else:
+            print('Skipping', sigla)
+
     offset += BATCH_SIZE
