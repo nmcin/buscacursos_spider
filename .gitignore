@@ -1,6 +1,9 @@
 # vscode
 .vscode
 
+# local config
+settings.json
+
 # sql dumps
 *.sql
 
