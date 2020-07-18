@@ -64,7 +64,7 @@ while offset < total:
         sigla = sigla[0]
         print('Processing', sigla)
         query = f'http://catalogo.uc.cl/index.php?tmpl=component&view=programa&sigla={sigla}'
-        db_cursor.execute('SELECT count(sigla) FROM cursos_info WHERE sigla = %s;', (sigla,))
+        db_cursor.execute('SELECT count(raw) FROM cursos_info WHERE sigla = %s;', (sigla,))
         exists = bool(db_cursor.fetchone()[0])
         if not exists:
             print('Inserting', sigla)
