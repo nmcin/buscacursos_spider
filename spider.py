@@ -4,11 +4,15 @@ import json
 import mysql.connector
 import sys
 
+settings = None
+with open('settings.json') as file:
+    settings = json.load(file)
+
 cursos_db = mysql.connector.connect(
-  host="localhost",
-  user="admin",
-  password="admin",
-  database="cursos"
+  host=settings['db_host'],
+  user=settings['db_user'],
+  password=settings['db_passwd'],
+  database=settings['db_name']
 )
 
 if len(sys.argv) < 2:

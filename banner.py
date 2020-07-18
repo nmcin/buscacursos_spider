@@ -4,6 +4,7 @@ from html.parser import HTMLParser
 import sys
 from datetime import datetime
 # from time import sleep
+import json
 
 
 class BannerParser(HTMLParser):
@@ -79,6 +80,19 @@ class BannerBCParser(HTMLParser):
 
 
 # Configurations
+settings = None
+with open('settings.json') as file:
+    settings = json.load(file)
+
+cursos_db = mysql.connector.connect(
+  host=settings['db_host'],
+  user=settings['db_user'],
+  password=settings['db_passwd'],
+  database=settings['db_name']
+)
+db_cursor = cursos_db.cursor()
+BATCH_SIZE = settings['batch_size']
+
 if len(sys.argv) < 2:
     print('Debe entragar los argumentos AÑO y SEMESTRE')
     print('ej: python proc_horarios.py 2020 1')
@@ -91,17 +105,9 @@ BANNER = '0'
 if '-b' in sys.argv:
     BANNER = sys.argv[sys.argv.index('-b') + 1]
 
-BATCH_SIZE = 100
 INSERT = f'INSERT INTO banner (id, date, categoria, cupos, banner) VALUES (%s, %s, %s, %s, "{BANNER}");'
 
-cursos_db = mysql.connector.connect(
-  host="localhost",
-  user="admin",
-  password="admin",
-  database="cursos"
-)
-db_cursor = cursos_db.cursor()
-
+# Start
 db_cursor.execute(f'SELECT count(nrc) FROM cursos WHERE ano = {ANO} AND semestre = {SEMESTRE};')
 total = int(db_cursor.fetchone()[0])
 print(total, 'courses found.')
