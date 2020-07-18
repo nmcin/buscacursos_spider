@@ -18,7 +18,7 @@ class BannerParser(HTMLParser):
         self.toogle = False
         self.values = {}
         self.col = 0
-        self.name = None
+        self.name = ''
         self.feed(text)
         return self.values
 
