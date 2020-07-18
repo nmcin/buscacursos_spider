@@ -3,8 +3,35 @@ import requests
 from html.parser import HTMLParser
 import sys
 from datetime import datetime
-# from time import sleep
 import json
+
+
+# SETUP
+if len(sys.argv) < 2:
+    print('Debe entragar los argumentos AÑO y SEMESTRE')
+    print('ej: python proc_horarios.py 2020 1')
+    exit()
+ANO = sys.argv[1]
+SEMESTRE = sys.argv[2]
+print('Processing horarios on', ANO, SEMESTRE)
+
+BANNER = '0'
+if '-b' in sys.argv:
+    BANNER = sys.argv[sys.argv.index('-b') + 1]
+
+settings = None
+with open('settings.json') as file:
+    settings = json.load(file)
+
+cursos_db = mysql.connector.connect(
+  host=settings['db_host'],
+  user=settings['db_user'],
+  password=settings['db_passwd'],
+  database=settings['db_name']
+)
+db_cursor = cursos_db.cursor()
+BATCH_SIZE = settings['batch_size']
+INSERT = f'INSERT INTO banner (id, date, categoria, cupos, banner) VALUES (%s, %s, %s, %s, "{BANNER}");'
 
 
 class BannerParser(HTMLParser):
@@ -79,41 +106,12 @@ class BannerBCParser(HTMLParser):
             self.toogle = False
 
 
-# Configurations
-settings = None
-with open('settings.json') as file:
-    settings = json.load(file)
-
-cursos_db = mysql.connector.connect(
-  host=settings['db_host'],
-  user=settings['db_user'],
-  password=settings['db_passwd'],
-  database=settings['db_name']
-)
-db_cursor = cursos_db.cursor()
-BATCH_SIZE = settings['batch_size']
-
-if len(sys.argv) < 2:
-    print('Debe entragar los argumentos AÑO y SEMESTRE')
-    print('ej: python proc_horarios.py 2020 1')
-    exit()
-ANO = sys.argv[1]
-SEMESTRE = sys.argv[2]
-print('Processing horarios on', ANO, SEMESTRE)
-
-BANNER = '0'
-if '-b' in sys.argv:
-    BANNER = sys.argv[sys.argv.index('-b') + 1]
-
-INSERT = f'INSERT INTO banner (id, date, categoria, cupos, banner) VALUES (%s, %s, %s, %s, "{BANNER}");'
-
-# Start
+# START
 db_cursor.execute(f'SELECT count(nrc) FROM cursos WHERE ano = {ANO} AND semestre = {SEMESTRE};')
 total = int(db_cursor.fetchone()[0])
 print(total, 'courses found.')
 
 offset = 0
-count = 0
 parser = BannerParser()
 parser_bc = BannerBCParser()
 while offset < total:
@@ -148,5 +146,4 @@ while offset < total:
             with open('error.log', 'a+') as log:
                 log.write('Error: ' + str(err) + '\n')
                 log.write('Context: ' + str([id, date, BANNER, cupos_dict]) + '\n')
-    print('BATCH ENDED')
     offset += BATCH_SIZE
