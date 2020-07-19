@@ -2,6 +2,23 @@
 Python scripts that retrieve courses data from BuscaCursosUC and Catálogo UC 
 and save it to a MySQL database.
 
+### BC and Catálogo Endpoints
++ Courses main data -> Table `cursos`
+  http://buscacursos.uc.cl/?cxml_semestre={YEAR}-{SEMESTER}&cxml_sigla={SIGLA}
+
++ Cupos details -> Table `banner`
+  http://buscacursos.uc.cl/informacionVacReserva.ajax.php?nrc={NRC}&termcode={YEAR}-{SEMESTER}
+
++ Programs -> Table `cursos_info`
+  http://catalogo.uc.cl/index.php?tmpl=component&view=programa&sigla={SIGLA}
+
++ Profesors photo
+  http://buscacursos.uc.cl/getFotoProfe.db.php?nombre=Cox+Juan&semestre={YEAR}-{SEMESTRE}&sigla={SIGLA}&seccion={SECTION}
+
++ Requirements and restrictions -> Table `cursos_info`
+  http://catalogo.uc.cl/index.php?tmpl=component&view=requisitos&sigla=PSI5005
+
+
 ## ```scrape_banner.py```
 For a given Year-Semester scrapes all siglas and inserts courses data from 
 the results table to a database. 
