@@ -1,7 +1,9 @@
 import mysql.connector
 import sys
+import json
 
 
+# SETUP
 if len(sys.argv) < 2:
     print('Debe entragar los argumentos AÑO y SEMESTRE')
     print('ej: python proc_horarios.py 2020 1')
@@ -10,7 +12,18 @@ ANO = sys.argv[1]
 SEMESTRE = sys.argv[2]
 print('Processing horarios on', ANO, SEMESTRE)
 
-BATCH_SIZE = 100
+settings = None
+with open('settings.json') as file:
+    settings = json.load(file)
+
+cursos_db = mysql.connector.connect(
+  host=settings['db_host'],
+  user=settings['db_user'],
+  password=settings['db_passwd'],
+  database=settings['db_name']
+)
+db_cursor = cursos_db.cursor()
+BATCH_SIZE = settings['batch_size']
 INSERT = 'INSERT INTO horarios_info (id, total, AYU, CLAS, LAB, PRA, SUP, TAL, TER, TES) ' +\
         'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
 
@@ -36,14 +49,7 @@ def process_course(id):
             log.write('Context: ' + str(id) + '\n')
 
 
-cursos_db = mysql.connector.connect(
-  host="localhost",
-  user="admin",
-  password="admin",
-  database="cursos"
-)
-db_cursor = cursos_db.cursor()
-
+# START
 db_cursor.execute(f'SELECT count(nrc) FROM cursos WHERE ano = {ANO} AND semestre = {SEMESTRE};')
 total = int(db_cursor.fetchone()[0])
 print(total, 'courses found.')

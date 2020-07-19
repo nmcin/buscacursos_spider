@@ -2,6 +2,26 @@ import mysql.connector
 import requests
 from html.parser import HTMLParser
 import sys
+import json
+
+
+# SETUP
+updating = ('-u' in sys.argv) or ('--update' in sys.argv)
+
+settings = None
+with open('settings.json') as file:
+    settings = json.load(file)
+
+cursos_db = mysql.connector.connect(
+  host=settings['db_host'],
+  user=settings['db_user'],
+  password=settings['db_passwd'],
+  database=settings['db_name']
+)
+db_cursor = cursos_db.cursor()
+BATCH_SIZE = settings['batch_size']
+INSERT = 'INSERT INTO cursos_info (sigla, requisitos, con, restricciones) VALUES (%s, %s, %s, %s);'
+UPDATE = 'UPDATE cursos_info SET requisitos = %s, con = %s, restricciones = %s WHERE sigla = %s;'
 
 
 class RequisitosParser(HTMLParser):
@@ -29,21 +49,7 @@ class RequisitosParser(HTMLParser):
             self.values.append(data)
 
 
-# Configurations
-BATCH_SIZE = 100
-INSERT = 'INSERT INTO cursos_info (sigla, requisitos, con, restricciones) VALUES (%s, %s, %s, %s);'
-UPDATE = 'UPDATE cursos_info SET requisitos = %s, con = %s, restricciones = %s WHERE sigla = %s;'
-
-cursos_db = mysql.connector.connect(
-  host="localhost",
-  user="admin",
-  password="admin",
-  database="cursos"
-)
-db_cursor = cursos_db.cursor()
-
-updating = ('-u' in sys.argv) or ('--update' in sys.argv)
-
+# START
 db_cursor.execute('SELECT count(distinct sigla) FROM cursos_info;')
 total = int(db_cursor.fetchone()[0])
 print(total, 'courses found.')
