@@ -72,7 +72,7 @@ class BannerParser(HTMLParser):
                 self.name += ' - ' + data
             elif self.col == 9:
                 self.values[self.name] = int(data)
-                self.name = 0
+                self.name = ''
 
 
 class BannerBCParser(HTMLParser):
