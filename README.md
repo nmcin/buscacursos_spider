@@ -19,7 +19,7 @@ and save it to a MySQL database.
   http://catalogo.uc.cl/index.php?tmpl=component&view=requisitos&sigla=PSI5005
 
 
-## ```scrape_banner.py```
+## ```scrape_main.py```
 For a given Year-Semester scrapes all siglas and inserts courses data from 
 the results table to a database. 
 Run ```python scrape_banner.py YEAR SEMESTER [-f start_comb]```.
