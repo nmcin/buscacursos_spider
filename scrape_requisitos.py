@@ -64,8 +64,9 @@ while offset < total:
     for sigla in siglas:
         sigla = sigla[0]
         query = f'http://catalogo.uc.cl/index.php?tmpl=component&view=requisitos&sigla={sigla}'
-        db_cursor.execute('SELECT count(*) FROM cursos_info WHERE sigla = %s;', (sigla,))
+        db_cursor.execute('SELECT count(*),count(con) FROM cursos_info WHERE sigla = %s;', (sigla,))
         exists = bool(db_cursor.fetchone()[0])
+        has_req = bool(db_cursor.fetchone()[1])
         if not exists:
             print('Inserting', sigla)
             text = requests.get(query).text
@@ -92,7 +93,18 @@ while offset < total:
                 with open('error.log', 'a+') as log:
                     log.write('Error: ' + str(err) + '\n')
                     log.write('Context: ' + str([sigla, req, con, restr]) + '\n')
-        else:
-            print('Skipping', sigla)
+        elif not has_req:
+            print('Inserting requisitos', sigla)
+            text = requests.get(query).text
+            req, con, restr = parser.process(text)
+            try:
+                db_cursor.execute(UPDATE, (req, con, restr, sigla))
+                cursos_db.commit()
+                print(db_cursor.rowcount, "sigla scrapped:", sigla)
+            except Exception as err:
+                print(err)
+                with open('error.log', 'a+') as log:
+                    log.write('Error: ' + str(err) + '\n')
+                    log.write('Context: ' + str([sigla, req, con, restr]) + '\n')
 
     offset += BATCH_SIZE
