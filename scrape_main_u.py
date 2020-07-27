@@ -30,6 +30,16 @@ cursos_db = mysql.connector.connect(
   database=settings['db_name']
 )
 db_cursor = cursos_db.cursor()
+INSERT = f'INSERT INTO cursos (ano, semestre, nrc, sigla, seccion,' +\
+                             f'nombre, profesor, retirable, en_ingles,' +\
+                             f'aprob_especial, area, formato, categoria,' +\
+                             f'campus, creditos, cupos_total, cupos_disp,' +\
+                             f'horario, escuela) VALUES ({ANO}, {SEMESTRE},' +\
+                             f'%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'
+UPDATE = f'UPDATE cursos SET profesor=%s, retirable=%s, en_ingles=%s,' +\
+                           f'aprob_especial=%s, area=%s, formato=%s, categoria=%s,' +\
+                           f'cupos_total=%s, cupos_disp=%s, horario=%s' +\
+                f' WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=%s ;'
 
 
 class BCParser(HTMLParser):
@@ -109,40 +119,49 @@ class BCParser(HTMLParser):
         # Turn profesor Apellido Nombre to Nombre Apellido
         course['profesor'] = ','.join([prof.split(' ')[-1] + ' ' + ' '.join(prof.split(' ')[:-1]) for prof in course['profesor'].split(',')])
 
+        db_cursor.execute(f'SELECT count(*) FROM cursos WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=%s;', (course['nrc'],))
+        exists = bool(db_cursor.fetchone()[0])
         try:
-            UPSERT = f'IF EXISTS (SELECT * FROM cursos WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\')' +\
-                f' THEN UPDATE cursos SET profesor="{course["profesor"]}", retirable={int(course["retirable"])}, en_ingles={int(course["en_ingles"])},' +\
-                f'        aprob_especial={int(course["aprob_especial"])}, area="{course["area"]}", formato="{course["formato"]}", categoria="{course["categoria"]}",' +\
-                f'        cupos_total={course["cupos_total"]}, cupos_disp={course["cupos_disp"]}, horario=\'{course["horario"]}\'' +\
-                f' WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\';' +\
-                f'ELSE' +\
-                f'    INSERT INTO cursos (ano, semestre, nrc, sigla, seccion,' +\
-                                    f'nombre, profesor, retirable, en_ingles,' +\
-                                    f'aprob_especial, area, formato, categoria,' +\
-                                    f'campus, creditos, cupos_total, cupos_disp,' +\
-                                    f'horario, escuela) VALUES ({ANO}, {SEMESTRE},' +\
-                                    f'%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); END IF;'
-            db_cursor.execute(UPSERT, (
-                course['nrc'],
-                course['sigla'],
-                course['seccion'],
-                course['nombre'],
-                course['profesor'],
-                course['retirable'],
-                course['en_ingles'],
-                course['aprob_especial'],
-                course['area'],
-                course['formato'],
-                course['categoria'],
-                course['campus'],
-                course['creditos'],
-                course['cupos_total'],
-                course['cupos_disp'],
-                course['horario'],
-                course['escuela']
-            ))
-            cursos_db.commit()
-            print(db_cursor.rowcount, "record upserted. Course", self.counter)
+            if exists:
+                # Update
+                db_cursor.execute(UPDATE, (
+                    course['profesor'],
+                    course['retirable'],
+                    course['en_ingles'],
+                    course['aprob_especial'],
+                    course['area'],
+                    course['formato'],
+                    course['categoria'],
+                    course['cupos_total'],
+                    course['cupos_disp'],
+                    course['horario'],
+                    course['nrc']
+                ))
+                cursos_db.commit()
+                print(db_cursor.rowcount, "record updated. Course", self.counter)
+            else:
+                # Insert
+                db_cursor.execute(INSERT, (
+                    course['nrc'],
+                    course['sigla'],
+                    course['seccion'],
+                    course['nombre'],
+                    course['profesor'],
+                    course['retirable'],
+                    course['en_ingles'],
+                    course['aprob_especial'],
+                    course['area'],
+                    course['formato'],
+                    course['categoria'],
+                    course['campus'],
+                    course['creditos'],
+                    course['cupos_total'],
+                    course['cupos_disp'],
+                    course['horario'],
+                    course['escuela']
+                ))
+                cursos_db.commit()
+                print(db_cursor.rowcount, "record inserted. Course", self.counter)
         except Exception as err:
             print(err)
             with open('error.log', 'a+') as log:
