@@ -110,18 +110,18 @@ class BCParser(HTMLParser):
         course['profesor'] = ','.join([prof.split(' ')[-1] + ' ' + ' '.join(prof.split(' ')[:-1]) for prof in course['profesor'].split(',')])
 
         try:
-            UPSERT = f'IF (EXISTS (SELECT * FROM cursos WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\'))' +\
-                f'THEN BEGIN UPDATE cursos SET profesor="{course["profesor"]}", retirable={int(course["retirable"])}, en_ingles={int(course["en_ingles"])},' +\
+            UPSERT = f'IF EXISTS (SELECT * FROM cursos WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\')' +\
+                f'THEN UPDATE cursos SET profesor="{course["profesor"]}", retirable={int(course["retirable"])}, en_ingles={int(course["en_ingles"])},' +\
                 f'        aprob_especial={int(course["aprob_especial"])}, area="{course["area"]}", formato="{course["formato"]}", categoria="{course["categoria"]}",' +\
                 f'        cupos_total={course["cupos_total"]}, cupos_disp={course["cupos_disp"]}, horario=\'{course["horario"]}\'' +\
                 f' WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\';' +\
-                f'END; ELSE BEGIN' +\
+                f'ELSE' +\
                 f'    INSERT INTO cursos (ano, semestre, nrc, sigla, seccion,' +\
                                     f'nombre, profesor, retirable, en_ingles,' +\
                                     f'aprob_especial, area, formato, categoria,' +\
                                     f'campus, creditos, cupos_total, cupos_disp,' +\
                                     f'horario, escuela) VALUES ({ANO}, {SEMESTRE},' +\
-                                    f'%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); END; END IF;'
+                                    f'%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); END IF;'
             db_cursor.execute(UPSERT, (
                 course['nrc'],
                 course['sigla'],
