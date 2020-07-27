@@ -24,8 +24,8 @@ cursos_db = mysql.connector.connect(
 )
 db_cursor = cursos_db.cursor()
 BATCH_SIZE = settings['batch_size']
-INSERT = 'START TRANSACTION; DELETE FROM horarios_info WHERE id=%s; INSERT INTO horarios_info (id, total, AYU, CLAS, LAB, PRA, SUP, TAL, TER, TES) ' +\
-        'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s); COMMIT;'
+INSERT = 'DELETE FROM horarios_info WHERE id=%s; INSERT INTO horarios_info (id, total, AYU, CLAS, LAB, PRA, SUP, TAL, TER, TES) ' +\
+        'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'
 
 
 def process_course(id):

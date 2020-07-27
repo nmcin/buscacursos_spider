@@ -43,7 +43,7 @@ def process_course(id, data):
                     values.append("'" + row[1] + "'")
     cols = ','.join(cols)
     values = ','.join(values)
-    INSERT = f'START TRANSACTION; DELETE FROM horarios WHERE id={id}; INSERT INTO horarios ({cols}) VALUES ({values}); COMMIT;'
+    INSERT = f'DELETE FROM horarios WHERE id={id}; INSERT INTO horarios ({cols}) VALUES ({values});'
     try:
         db_cursor.execute(INSERT,multi=True)
         cursos_db.commit()
