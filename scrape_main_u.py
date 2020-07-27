@@ -111,7 +111,7 @@ class BCParser(HTMLParser):
 
         try:
             UPSERT = f'IF EXISTS (SELECT * FROM cursos WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\')' +\
-                f'THEN UPDATE cursos SET profesor="{course["profesor"]}", retirable={int(course["retirable"])}, en_ingles={int(course["en_ingles"])},' +\
+                f' THEN UPDATE cursos SET profesor="{course["profesor"]}", retirable={int(course["retirable"])}, en_ingles={int(course["en_ingles"])},' +\
                 f'        aprob_especial={int(course["aprob_especial"])}, area="{course["area"]}", formato="{course["formato"]}", categoria="{course["categoria"]}",' +\
                 f'        cupos_total={course["cupos_total"]}, cupos_disp={course["cupos_disp"]}, horario=\'{course["horario"]}\'' +\
                 f' WHERE ano={ANO} AND semestre={SEMESTRE} AND nrc=\'{course["nrc"]}\';' +\
