@@ -45,7 +45,9 @@ def process_course(id, data):
     values = ','.join(values)
     INSERT = f'DELETE FROM horarios WHERE id={id}; INSERT INTO horarios ({cols}) VALUES ({values});'
     try:
-        db_cursor.execute(INSERT,multi=True)
+        db_cursor.execute(f'DELETE FROM horarios WHERE id={id};')
+        cursos_db.commit()
+        db_cursor.execute(f'INSERT INTO horarios ({cols}) VALUES ({values});')
         cursos_db.commit()
         print(db_cursor.rowcount, "horario procesed.", id)
     except Exception as err:

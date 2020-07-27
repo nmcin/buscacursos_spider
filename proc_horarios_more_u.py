@@ -24,14 +24,14 @@ cursos_db = mysql.connector.connect(
 )
 db_cursor = cursos_db.cursor()
 BATCH_SIZE = settings['batch_size']
-INSERT = 'DELETE FROM horarios_info WHERE id=%s; INSERT INTO horarios_info (id, total, AYU, CLAS, LAB, PRA, SUP, TAL, TER, TES) ' +\
+INSERT = 'INSERT INTO horarios_info (id, total, AYU, CLAS, LAB, PRA, SUP, TAL, TER, TES) ' +\
         'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'
 
 
 def process_course(id):
     db_cursor.execute('SELECT * FROM horarios WHERE id = %s;', (id,))
     horario = db_cursor.fetchone()[1:]
-    data = {'id1': id, 'id': id, 'total': 0}
+    data = {'id': id, 'total': 0}
     total = 0
     for type in ['AYU', 'CLAS', 'LAB', 'PRA', 'SUP', 'TAL', 'TER', 'TES']:
         data[type] = horario.count(type)
@@ -39,7 +39,9 @@ def process_course(id):
     data['total'] = total
     print(list(data.values()))
     try:
-        db_cursor.execute(INSERT, list(data.values()),multi=True)
+        db_cursor.execute('DELETE FROM horarios_info WHERE id=%s;', (id,))
+        cursos_db.commit()
+        db_cursor.execute(INSERT, list(data.values()))
         cursos_db.commit()
         print(db_cursor.rowcount, "horario procesed.", id)
     except Exception as err:
