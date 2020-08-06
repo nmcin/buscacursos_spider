@@ -194,3 +194,11 @@ for row in db_cursor.fetchall():
                     resp = requests.get(query)
                     parser.counter = 0
                     parser.feed(resp.text)
+                    if parser.counter >= 50:
+                        for digit2 in range(10):
+                            digit2 = str(digit2)
+                            print('Searching', comb + digit0 + digit1 + digit2)
+                            query = f'http://buscacursos.uc.cl/?cxml_semestre={ANO}-{SEMESTRE}&cxml_sigla={comb + digit0 + digit1 + digit2}'
+                            resp = requests.get(query)
+                            parser.counter = 0
+                            parser.feed(resp.text)
