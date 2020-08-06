@@ -55,7 +55,6 @@ class BCParser(HTMLParser):
         if tag == 'tr' and (\
                 ('class', 'resultadosRowPar') in attrs \
                 or ('class', 'resultadosRowImpar') in attrs):
-            self.counter += 1
             self.toogle = True
         elif tag == 'tr' and self.toogle:
             self.nested += 1
@@ -88,6 +87,7 @@ class BCParser(HTMLParser):
             self.current_escuela = data
 
     def process_course(self):
+        self.counter += 1
         data = self.text.strip().split('\n')
         for index in range(len(data)):
             # data[index] = data[index][4:-5] # strip <td> </td>
@@ -176,6 +176,21 @@ for row in db_cursor.fetchall():
     print('Searching', comb)
     query = f'http://buscacursos.uc.cl/?cxml_semestre={ANO}-{SEMESTRE}&cxml_sigla={comb}'
     resp = requests.get(query)
+    parser.counter = 0
     parser.feed(resp.text)
-
-print(parser.counter, 'courses found.')
+    if parser.counter >= 50:
+        for digit0 in range(10):
+            digit0 = str(digit0)
+            print('Searching', comb + digit0)
+            query = f'http://buscacursos.uc.cl/?cxml_semestre={ANO}-{SEMESTRE}&cxml_sigla={comb + digit0}'
+            resp = requests.get(query)
+            parser.counter = 0
+            parser.feed(resp.text)
+            if parser.counter >= 50:
+                for digit1 in range(10):
+                    digit1 = str(digit1)
+                    print('Searching', comb + digit0 + digit1)
+                    query = f'http://buscacursos.uc.cl/?cxml_semestre={ANO}-{SEMESTRE}&cxml_sigla={comb + digit0 + digit1}'
+                    resp = requests.get(query)
+                    parser.counter = 0
+                    parser.feed(resp.text)
